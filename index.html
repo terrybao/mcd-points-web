@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>麦分精算师 · 网页体验版 | Made with WorkBuddy</title>
+<style>
+  :root{
+    --red:#ff5b22; --red2:#ff8a3d; --ink:#1f2330; --ink2:#5b6172;
+    --bg:#fff7f2; --card:#fff; --line:#ffe2d2; --ok:#19b36b; --warn:#ff9f1c; --bad:#ff4d4f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif}
+  body{background:linear-gradient(160deg,#fff7f2,#ffe9dd 60%,#ffd9c2);color:var(--ink);min-height:100vh;padding:24px 14px 60px}
+  .wrap{max-width:760px;margin:0 auto}
+  .brand{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);margin-bottom:6px}
+  .brand b{color:var(--red)}
+  h1{font-size:26px;line-height:1.25;margin-bottom:6px}
+  h1 .em{color:var(--red)}
+  .sub{color:var(--ink2);font-size:13px;margin-bottom:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 6px 22px rgba(255,91,34,.08)}
+  .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .tab{padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer;font-size:13px;color:var(--ink2)}
+  .tab.on{background:var(--red);color:#fff;border-color:var(--red)}
+  .pane{display:none}
+  .pane.on{display:block}
+  textarea,input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;outline:none;background:#fffdfb}
+  textarea{height:120px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  .row{display:flex;gap:10px;margin:8px 0}
+  .row label{flex:1;font-size:12px;color:var(--ink2)}
+  .row input{margin-top:4px}
+  .btn{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;border:none;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 8px 18px rgba(255,91,34,.28)}
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:#fff;color:var(--red);border:1px solid var(--red);box-shadow:none}
+  .hint{font-size:12px;color:var(--ink2);margin-top:8px;line-height:1.6}
+  .err{color:var(--bad);font-size:13px;margin-top:8px}
+  /* report */
+  .report{display:none}
+  .report.on{display:block}
+  .statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  .stat{background:#fff7f2;border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center}
+  .stat .v{font-size:20px;font-weight:700}
+  .stat .k{font-size:11px;color:var(--ink2);margin-top:2px}
+  .badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:600;color:#fff}
+  .b-ok{background:var(--ok)} .b-warn{background:var(--warn)} .b-bad{background:var(--bad)}
+  .sec-t{font-size:14px;font-weight:700;margin:14px 0 8px;display:flex;align-items:center;gap:6px}
+  .bar{height:10px;border-radius:6px;background:#ffe2d2;overflow:hidden;margin:6px 0 2px}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--red2))}
+  .pick{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin:8px 0;background:#fffdfb}
+  .pick .nm{font-weight:600;font-size:14px}
+  .pick .meta{font-size:12px;color:var(--ink2)}
+  .pick .tag{font-size:11px;padding:2px 8px;border-radius:999px;background:#eafaf1;color:var(--ok);font-weight:600}
+  .pick .tag.exp{background:#fff3e0;color:var(--warn)}
+  .share{margin-top:14px;background:#fff7f2;border:1px dashed var(--red);border-radius:12px;padding:12px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+  .foot{text-align:center;font-size:11px;color:var(--ink2);margin-top:20px;line-height:1.7}
+  @media(max-width:560px){.statgrid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">🍔 <b>Made with WorkBuddy</b> · 1024 程序员节「造物挑战」参赛作品</div>
+  <h1>麦分精算师 · <span class="em">网页体验版</span></h1>
+  <div class="sub">你的麦当劳积分，正在悄悄过期。这个工具帮你把「即将作废的积分」换成真正想吃的。纯前端运行，数据不出本机。</div>
+
+  <div class="card">
+    <div class="tabs">
+      <div class="tab on" data-p="demo">⚡ 一键体验</div>
+      <div class="tab" data-p="json">📋 粘贴账号 JSON</div>
+      <div class="tab" data-p="manual">✍️ 手动输入</div>
+    </div>
+
+    <div class="pane on" id="p-demo">
+      <div class="hint">用一份脱敏的演示数据，直接看效果。点击「开始体检」即可。</div>
+    </div>
+
+    <div class="pane" id="p-json">
+      <textarea id="jsonInput" placeholder='把 WorkBuddy 连接麦当劳 MCP 后导出的账号 JSON 粘到这里，例如：&#10;{"availablePoint":182.1,"accumulatedPoint":745.7,"expiredPoint":563.6,"currentMouthExpirePoint":5}'></textarea>
+      <div class="hint">字段支持：availablePoint / accumulatedPoint / expiredPoint / currentMouthExpirePoint（或 available / total / frozen / expiring 等别名）。</div>
+    </div>
+
+    <div class="pane" id="p-manual">
+      <div class="row">
+        <label>可用积分<input id="mAvail" type="number" value="350" /></label>
+        <label>累计积分<input id="mAcc" type="number" value="1280" /></label>
+      </div>
+      <div class="row">
+        <label>已过期积分<input id="mExp" type="number" value="210" /></label>
+        <label>本月将过期<input id="mSoon" type="number" value="120" /></label>
+      </div>
+      <div class="hint">积分商城商品已内置示例（也可在 JSON 模式粘贴含 mall 商品的完整数据）。</div>
+    </div>
+
+    <div style="margin-top:14px">
+      <button class="btn" id="run">🩺 开始体检</button>
+      <button class="btn ghost" id="reset">重置</button>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card report" id="report">
+    <div class="statgrid">
+      <div class="stat"><div class="v" id="sAvail">–</div><div class="k">可用积分</div></div>
+      <div class="stat"><div class="v" id="sAcc">–</div><div class="k">累计积分</div></div>
+      <div class="stat"><div class="v" id="sExp">–</div><div class="k">已过期</div></div>
+      <div class="stat"><div class="v" id="sSoon">–</div><div class="k">本月将过期</div></div>
+    </div>
+    <div id="riskLine"></div>
+
+    <div class="sec-t">💡 每积分价值</div>
+    <div id="valueLine" class="hint"></div>
+    <div class="bar"><i id="valueBar" style="width:0%"></i></div>
+
+    <div class="sec-t">🛒 兑换建议（优先消耗即将过期积分，避免作废）</div>
+    <div id="picks"></div>
+    <div id="avoidLine" class="hint"></div>
+
+    <div class="sec-t">📣 一键分享文案</div>
+    <div class="share" id="shareText"></div>
+    <div style="margin-top:10px"><button class="btn ghost" id="copyShare">复制分享文案</button></div>
+  </div>
+
+  <div class="foot">
+    本作品由 WorkBuddy 生成：从需求梳理、界面设计到逻辑实现一气呵成。<br/>
+    数据全部在浏览器本地计算，不上传任何服务器。麦当劳 MCP 仅用于获取演示数据。
+  </div>
+</div>
+
+<script>
+// ---------- 演示数据（脱敏）----------
+const DEMO = {
+  account: { available:182.1, accumulated:745.7, frozen:0, expired:563.6, expiring:5, expiringDate:"2026-10-31" },
+  products: [
+    { name:"板烧鸡腿堡两件套", points:100, price:18.8 },
+    { name:"麦辣鸡腿堡兑换券", points:100, price:21.0 },
+    { name:"巨无霸兑换券", points:150, price:24.0 },
+    { name:"薯条买一赠一券", points:50, price:11.0 },
+    { name:"10元现金抵扣券", points:80, price:10.0 },
+    { name:"麦咖啡中杯券", points:60, price:13.0 },
+    { name:"圆筒冰淇淋券", points:30, price:7.0 }
+  ]
+};
+
+// ---------- 工具 ----------
+function num(v, d=0){ const n = parseFloat(v); return isNaN(n)? d : n; }
+function yuan(n){ return "¥" + (Math.round(n*100)/100).toFixed(2); }
+
+function parseAccount(src){
+  // 兼容多种字段命名
+  const a = src || {};
+  const get = (...ks)=>{ for(const k of ks){ if(a[k]!==undefined && a[k]!==null && a[k]!=="") return num(a[k]); } return null; };
+  return {
+    available: get("availablePoint","availablePoints","available","可用积分"),
+    accumulated: get("accumulatedPoint","accumulatedPoints","totalPoints","accumulated","累计积分"),
+    frozen: get("frozenPoint","frozenPoints","frozen","冻结积分"),
+    expiring: get("currentMouthExpirePoint","expiringPoint","expiringPoints","expiring","即将过期积分"),
+    expiringDate: a.expiringDate || a.expireDate || a.expiringDateStr || null
+  };
+}
+
+function collectProducts(src){
+  // 优先用 mall 商品；否则用内置示例
+  let arr = null;
+  if(Array.isArray(src?.products)) arr = src.products;
+  else if(Array.isArray(src?.mallProducts)) arr = src.mallProducts;
+  else if(Array.isArray(src?.mall?.products)) arr = src.mall.products;
+  if(!arr || !arr.length) return DEMO.products;
+  const out=[];
+  for(const it of arr){
+    const pts = num(it.points ?? it.point ?? it.cost);
+    const price = num(it.price ?? it.rmb ?? it.value);
+    const name = it.name || it.productName || it.title;
+    if(pts>0 && price>0 && name) out.push({name, points:pts, price});
+  }
+  return out.length? out : DEMO.products;
+}
+
+function analyze(acc, products){
+  const avail = acc.available||0, expiring = acc.expiring||0;
+  // 每积分价值（取可兑换商品平均）
+  const vals = products.map(p=> p.price/p.points).filter(v=>v>0);
+  const perPoint = vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+  // 风险等级
+  let risk, rcls, rtxt;
+  if(expiring<=0){ risk="低风险"; rcls="b-ok"; rtxt="当前无即将过期积分，可从容规划兑换。"; }
+  else if(expiring/avail >= 0.3){ risk="高风险"; rcls="b-bad"; rtxt="即将过期积分占比偏高，建议优先处理，避免大笔作废。"; }
+  else { risk="中风险"; rcls="b-warn"; rtxt="有部分积分即将过期，建议在过期前兑换掉。"; }
+  // 贪心推荐：优先用过期积分兑换高价值商品
+  const ranked = products.filter(p=>p.points<=avail).slice().sort((a,b)=> (b.price/b.points)-(a.price/a.points));
+  const picks=[]; let usedExpiring=0; let budgetExpiring=expiring, budgetAvail=avail;
+  for(const p of ranked){
+    if(budgetExpiring<=0 && budgetAvail<=0) break;
+    if(p.points>budgetExpiring+budgetAvail) continue;
+    let how, consumed=0;
+    if(budgetExpiring>=p.points){ budgetExpiring-=p.points; how="过期积分全额抵扣"; consumed=p.points; }
+    else if(budgetExpiring>0){ consumed=budgetExpiring; budgetExpiring=0; budgetAvail-=(p.points-consumed); how="过期积分抵"+Math.round(consumed)+"+可用"+(p.points-Math.round(consumed)); }
+    else { budgetAvail-=p.points; how="可用积分兑换"; }
+    usedExpiring+=consumed;
+    picks.push({...p, how});
+    if(picks.length>=5) break;
+  }
+  return { avail, expiring, perPoint, risk, rcls, rtxt, picks, usedExpiring };
+}
+
+// ---------- 渲染 ----------
+function render(acc, products){
+  const r = analyze(acc, products);
+  document.getElementById("sAvail").textContent = r.avail;
+  document.getElementById("sAcc").textContent = acc.accumulated!=null? acc.accumulated : "–";
+  document.getElementById("sExp").textContent = acc.expired!=null? acc.expired : "–";
+  document.getElementById("sSoon").textContent = r.expiring;
+  document.getElementById("riskLine").innerHTML =
+    '<span class="badge '+r.rcls+'">'+r.risk+'</span> <span class="hint" style="margin-left:8px">'+r.rtxt+'</span>';
+  const pv = r.perPoint;
+  document.getElementById("valueLine").textContent = pv>0 ? ("按积分商城可兑换商品估算，每 1 积分约值 "+yuan(pv)+"，攒着不用就是白白贬值。") : "（暂无可计算价值的商品）";
+  document.getElementById("valueBar").style.width = Math.min(100, pv/0.25*100) + "%";
+  const box = document.getElementById("picks"); box.innerHTML="";
+  if(!r.picks.length){ box.innerHTML = '<div class="hint">暂无可用积分能兑换的商品，先攒一攒吧～</div>'; }
+  for(const p of r.picks){
+    const exp = p.how.startsWith("过期")?"<span class='tag exp'>护住过期积分</span>":"<span class='tag'>可用积分</span>";
+    box.insertAdjacentHTML("beforeend",
+      '<div class="pick"><div><div class="nm">'+p.name+'</div><div class="meta">'+p.points+' 积分 · 价值 '+yuan(p.price)+' · '+p.how+'</div></div>'+exp+'</div>');
+  }
+  document.getElementById("avoidLine").textContent = r.usedExpiring>0
+    ? ("✅ 已为你规划用掉 "+Math.round(r.usedExpiring)+" 分即将过期的积分，避免直接作废。")
+    : "提示：当前没有即将过期的积分需要紧急处理。";
+  // 分享文案
+  document.getElementById("shareText").textContent =
+    "🍔 我用 WorkBuddy 做了个「麦分精算师」：自动盯住麦当劳快过期的积分，在作废前推荐最优兑换。\n"+
+    "我的账号已经白白过期 "+ (acc.expired!=null?acc.expired:"若干") +" 分了😭 这个工具一键算出每积分价值和兑换清单。\n"+
+    "纯前端、数据不出本机，1024 程序员节造物挑战参赛作品。#WorkBuddy #1024程序员节";
+  document.getElementById("report").classList.add("on");
+  document.getElementById("err").textContent="";
+}
+
+// ---------- 输入读取 ----------
+function readInput(){
+  document.getElementById("err").textContent="";
+  const pane = document.querySelector(".pane.on").id;
+  if(pane==="p-demo"){ render(DEMO.account, DEMO.products); return; }
+  if(pane==="p-json"){
+    const raw = document.getElementById("jsonInput").value.trim();
+    if(!raw){ throw "请先粘贴账号 JSON"; }
+    let obj; try{ obj=JSON.parse(raw); }catch(e){ throw "JSON 解析失败："+e.message; }
+    const acc = parseAccount(obj);
+    if(acc.available==null) throw "未能在 JSON 中找到可用积分字段（availablePoint 等）";
+    render(acc, collectProducts(obj));
+    return;
+  }
+  if(pane==="p-manual"){
+    const acc = {
+      available: num(document.getElementById("mAvail").value),
+      accumulated: num(document.getElementById("mAcc").value),
+      expired: num(document.getElementById("mExp").value),
+      expiring: num(document.getElementById("mSoon").value)
+    };
+    render(acc, DEMO.products);
+    return;
+  }
+}
+
+// ---------- 事件 ----------
+document.querySelectorAll(".tab").forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+    document.querySelectorAll(".pane").forEach(x=>x.classList.remove("on"));
+    t.classList.add("on");
+    document.getElementById("p-"+t.dataset.p).classList.add("on");
+  };
+});
+document.getElementById("run").onclick=()=>{ try{ readInput(); }catch(e){ document.getElementById("err").textContent=e; } };
+document.getElementById("reset").onclick=()=>{ document.getElementById("report").classList.remove("on"); document.getElementById("err").textContent=""; };
+document.getElementById("copyShare").onclick=()=>{
+  const t=document.getElementById("shareText").textContent;
+  navigator.clipboard?.writeText(t).then(()=>alert("分享文案已复制，去带话题发社媒吧！"));
+};
+
+// 演示参数：?demo=1 自动体检，便于截图/分享
+if(new URLSearchParams(location.search).get("demo")==="1"){
+  setTimeout(()=>{ document.getElementById("run").click(); }, 200);
+}
+</script>
+</body>
+</html>
